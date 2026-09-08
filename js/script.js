@@ -58,3 +58,37 @@ lightbox&&lightbox.addEventListener('click',e=>{if(e.target===lightbox)closeGall
 document.addEventListener('keydown',e=>{if(!lightbox||!lightbox.classList.contains('open'))return;if(e.key==='Escape')closeGallery();if(e.key==='ArrowLeft')stepGallery(-1);if(e.key==='ArrowRight')stepGallery(1)});
 
 })();
+
+// Room card photo gallery / slider
+(function(){
+  const cards=[...document.querySelectorAll('.room-card[data-room-gallery]')];
+  const lb=document.getElementById('roomLightbox');
+  const lbImg=document.getElementById('roomLightboxImage');
+  const lbTitle=document.getElementById('roomLightboxTitle');
+  const lbCounter=document.getElementById('roomLightboxCounter');
+  const lbThumbs=document.getElementById('roomLightboxThumbs');
+  const close=document.getElementById('roomLightboxClose');
+  const prev=document.getElementById('roomLightboxPrev');
+  const next=document.getElementById('roomLightboxNext');
+  if(!lb||!cards.length)return;
+  let photos=[], index=0;
+  function render(){
+    if(!photos.length)return;
+    lbImg.src=photos[index].src; lbImg.alt=photos[index].title;
+    lbTitle.textContent=photos[index].room;
+    lbCounter.textContent=`${index+1} / ${photos.length}`;
+    [...lbThumbs.children].forEach((b,i)=>b.classList.toggle('active',i===index));
+  }
+  function open(card){
+    photos=card.dataset.roomGallery.split('|').map(src=>({src,room:card.dataset.roomName,title:`${card.dataset.roomName} - Yukke Tembi`}));
+    index=0; lbThumbs.innerHTML='';
+    photos.forEach((p,i)=>{const b=document.createElement('button');b.type='button';b.setAttribute('aria-label',`Buka foto ${i+1}`);const im=document.createElement('img');im.src=p.src;im.alt=p.title;b.appendChild(im);b.addEventListener('click',()=>{index=i;render()});lbThumbs.appendChild(b)});
+    render(); lb.classList.add('open'); lb.setAttribute('aria-hidden','false'); document.body.classList.add('lightbox-open');
+  }
+  function hide(){lb.classList.remove('open');lb.setAttribute('aria-hidden','true');document.body.classList.remove('lightbox-open')}
+  function step(delta){if(!photos.length)return;index=(index+delta+photos.length)%photos.length;render()}
+  cards.forEach(card=>{const b=card.querySelector('.room-photo');b&&b.addEventListener('click',()=>open(card))});
+  close&&close.addEventListener('click',hide); prev&&prev.addEventListener('click',()=>step(-1)); next&&next.addEventListener('click',()=>step(1));
+  lb.addEventListener('click',e=>{if(e.target===lb)hide()});
+  document.addEventListener('keydown',e=>{if(!lb.classList.contains('open'))return;if(e.key==='Escape')hide();if(e.key==='ArrowLeft')step(-1);if(e.key==='ArrowRight')step(1)});
+})();
